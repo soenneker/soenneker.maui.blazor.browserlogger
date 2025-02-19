@@ -4,7 +4,7 @@ using Xunit;
 namespace Soenneker.Maui.Blazor.BrowserLogger.Tests;
 
 [Collection("Collection")]
-public class MauiBlazorBrowserLoggerTests : FixturedUnitTest
+public sealed class MauiBlazorBrowserLoggerTests : FixturedUnitTest
 {
     public MauiBlazorBrowserLoggerTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
     {

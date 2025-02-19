@@ -6,7 +6,7 @@ using Soenneker.Utils.Test;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger.Tests;
 
-public class Fixture : UnitFixture
+public sealed class Fixture : UnitFixture
 {
     public override System.Threading.Tasks.ValueTask InitializeAsync()
     {

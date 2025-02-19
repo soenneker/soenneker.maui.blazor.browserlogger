@@ -5,7 +5,7 @@ using System;
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
 /// <inheritdoc cref="IMauiBlazorBrowserLogger"/>
-public class MauiBlazorBrowserLogger : IMauiBlazorBrowserLogger
+public sealed class MauiBlazorBrowserLogger : IMauiBlazorBrowserLogger
 {
     private readonly IMauiBlazorJsInteropLoggingService _jsInteropService;
     private readonly string _categoryName;

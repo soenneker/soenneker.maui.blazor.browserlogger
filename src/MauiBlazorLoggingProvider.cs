@@ -3,7 +3,7 @@ using Soenneker.Maui.Blazor.BrowserLogger.Abstract;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
-public class MauiBlazorBrowserLoggerProvider : ILoggerProvider
+public sealed class MauiBlazorBrowserLoggerProvider : ILoggerProvider
 {
     private readonly IMauiBlazorJsInteropLoggingService _jsInteropService;
 

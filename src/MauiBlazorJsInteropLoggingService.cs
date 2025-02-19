@@ -9,7 +9,7 @@ using Soenneker.Maui.Blazor.BrowserLogger.Abstract;
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
 ///<inheritdoc cref="IMauiBlazorJsInteropLoggingService"/>
-public class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLoggingService
+public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLoggingService
 {
     private IJSRuntime? _jsRuntime;
     private readonly ConcurrentQueue<(string logMethod, string message)> _logQueue = new();
