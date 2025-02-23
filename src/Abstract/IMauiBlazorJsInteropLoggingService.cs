@@ -12,7 +12,7 @@ public interface IMauiBlazorJsInteropLoggingService : IAsyncDisposable
     /// <param name="jsRuntime">The JavaScript runtime instance.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    ValueTask Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default);
+    void Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Queues a log message to be processed and sent to the JavaScript runtime.

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Extensions.Task;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Maui.Blazor.BrowserLogger.Abstract;
 
@@ -17,19 +18,22 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
     private CancellationTokenSource? _cts;
     private bool _isProcessingLogs;
 
-    public async ValueTask Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default)
+    private bool _initialized;
+
+    public void Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default)
     {
+        if (_initialized)
+            return;
+
+        _initialized = true;
+
         _jsRuntime = jsRuntime;
 
-        // Start processing logs only once
-        if (_logTimer == null)
-        {
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            _logTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
+        _logTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
 
-            await StartLogProcessing();
-        }
+        _ = StartLogProcessing();
     }
 
     public void QueueLog(string logMethod, string message)
@@ -68,7 +72,7 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
         if (_cts != null)
         {
-            await _cts.CancelAsync();
+            await _cts.CancelAsync().NoSync();
             _cts.Dispose();
         }
     }
