@@ -26,6 +26,13 @@ public sealed class MauiBlazorBrowserLogger : IMauiBlazorBrowserLogger
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         string message = formatter(state, exception);
+
+        if (exception != null)
+        {
+            // Append exception details (including stack trace) to the message
+            message += Environment.NewLine + exception;
+        }
+
         string logLevelString = GetConsoleMethod(logLevel);
 
         // Send log message to the UI service (where it will be processed safely)
