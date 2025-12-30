@@ -68,12 +68,20 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
     public async ValueTask DisposeAsync()
     {
+        if (_cts != null)
+        {
+            await _cts.CancelAsync().NoSync();
+        }
+
         _logTimer?.Dispose();
 
         if (_cts != null)
         {
-            await _cts.CancelAsync().NoSync();
             _cts.Dispose();
+            _cts = null;
         }
+
+        _logTimer = null;
+        _jsRuntime = null;
     }
 }
