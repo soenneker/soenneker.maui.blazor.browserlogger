@@ -44,6 +44,6 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
         <PackageReference Include="Microsoft.JSInterop" Version="10.0.1" />
         <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.111" />
-        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.102" />
+        <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.103" />
     </ItemGroup>
 </Project>
