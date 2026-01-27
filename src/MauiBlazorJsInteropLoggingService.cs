@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Soenneker.Extensions.CancellationTokens;
 using Soenneker.Extensions.Task;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Maui.Blazor.BrowserLogger.Abstract;
+using Soenneker.Utils.CancellationScopes;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
@@ -15,7 +17,9 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
     private IJSRuntime? _jsRuntime;
     private readonly ConcurrentQueue<(string logMethod, string message)> _logQueue = new();
     private PeriodicTimer? _logTimer;
-    private CancellationTokenSource? _cts;
+    private readonly CancellationScope _cancellationScope = new();
+    private CancellationTokenSource? _linkedSource;
+    private CancellationToken _linkedToken;
     private bool _isProcessingLogs;
 
     private bool _initialized;
@@ -29,7 +33,8 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
         _jsRuntime = jsRuntime;
 
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _linkedToken = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        _linkedSource = source;
 
         _logTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
 
@@ -45,7 +50,7 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
     {
         try
         {
-            while (await _logTimer!.WaitForNextTickAsync(_cts!.Token).NoSync())
+            while (await _logTimer!.WaitForNextTickAsync(_linkedToken).NoSync())
             {
                 if (_jsRuntime != null && !_isProcessingLogs)
                 {
@@ -53,7 +58,7 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
                     while (_logQueue.TryDequeue(out (string logMethod, string message) log))
                     {
-                        await _jsRuntime.InvokeVoidAsync(log.logMethod, _cts.Token, log.message).NoSync();
+                        await _jsRuntime.InvokeVoidAsync(log.logMethod, _linkedToken, log.message).NoSync();
                     }
 
                     _isProcessingLogs = false;
@@ -68,20 +73,22 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
     public async ValueTask DisposeAsync()
     {
-        if (_cts != null)
+        if (_linkedSource != null)
         {
-            await _cts.CancelAsync().NoSync();
+            await _linkedSource.CancelAsync().NoSync();
         }
 
         _logTimer?.Dispose();
 
-        if (_cts != null)
+        if (_linkedSource != null)
         {
-            _cts.Dispose();
-            _cts = null;
+            _linkedSource.Dispose();
+            _linkedSource = null;
         }
 
         _logTimer = null;
         _jsRuntime = null;
+
+        await _cancellationScope.DisposeAsync().NoSync();
     }
 }
