@@ -33,7 +33,7 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
 
         _jsRuntime = jsRuntime;
 
-        _linkedToken = _cancellationScope.CancellationToken.Link(cancellationToken, out var source);
+        _linkedToken = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
         _linkedSource = source;
 
         _logTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
