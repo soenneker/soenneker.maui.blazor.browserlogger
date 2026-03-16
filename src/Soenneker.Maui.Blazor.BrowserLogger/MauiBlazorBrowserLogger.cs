@@ -21,22 +21,27 @@ public sealed class MauiBlazorBrowserLogger : IMauiBlazorBrowserLogger
         return null;
     }
 
-    public bool IsEnabled(LogLevel logLevel) => true;
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return logLevel != LogLevel.None;
+    }
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        string message = formatter(state, exception);
+        if (!IsEnabled(logLevel))
+            return;
 
-        if (exception != null)
-        {
-            // Append exception details (including stack trace) to the message
-            message += Environment.NewLine + exception;
-        }
+        if (formatter is null)
+            throw new ArgumentNullException(nameof(formatter));
 
-        string logLevelString = GetConsoleMethod(logLevel);
+        string method = GetConsoleMethod(logLevel);
+        string formatted = formatter(state, exception);
 
-        // Send log message to the UI service (where it will be processed safely)
-        _jsInteropService.QueueLog(logLevelString, $"[{logLevelString}] {_categoryName}: {message}");
+        string message = exception is null
+            ? $"[{method}] {_categoryName}: {formatted}"
+            : $"[{method}] {_categoryName}: {formatted}{Environment.NewLine}{exception}";
+
+        _jsInteropService.QueueLog(method, message);
     }
 
     private static string GetConsoleMethod(LogLevel logLevel) => logLevel switch

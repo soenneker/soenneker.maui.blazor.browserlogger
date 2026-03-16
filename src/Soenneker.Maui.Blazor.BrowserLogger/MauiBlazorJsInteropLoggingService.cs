@@ -1,67 +1,67 @@
-using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.JSInterop;
 using Soenneker.Extensions.CancellationTokens;
 using Soenneker.Extensions.Task;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.Maui.Blazor.BrowserLogger.Abstract;
 using Soenneker.Utils.CancellationScopes;
+using System;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
-///<inheritdoc cref="IMauiBlazorJsInteropLoggingService"/>
+/// <inheritdoc cref="IMauiBlazorJsInteropLoggingService"/>
 public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLoggingService
 {
-    private IJSRuntime? _jsRuntime;
-    private readonly ConcurrentQueue<(string logMethod, string message)> _logQueue = new();
-    private PeriodicTimer? _logTimer;
+    private readonly Channel<LogEntry> _channel = Channel.CreateUnbounded<LogEntry>(new UnboundedChannelOptions
+    {
+        SingleReader = true,
+        SingleWriter = false,
+        AllowSynchronousContinuations = false
+    });
+
     private readonly CancellationScope _cancellationScope = new();
+
+    private IJSRuntime? _jsRuntime;
     private CancellationTokenSource? _linkedSource;
     private CancellationToken _linkedToken;
-    private bool _isProcessingLogs;
-
-    private bool _initialized;
+    private Task? _processingTask;
+    private int _initialized;
 
     public void Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default)
     {
-        if (_initialized)
+        if (Interlocked.Exchange(ref _initialized, 1) != 0)
             return;
-
-        _initialized = true;
 
         _jsRuntime = jsRuntime;
 
         _linkedToken = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
         _linkedSource = source;
 
-        _logTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
-
-        _ = StartLogProcessing();
+        _processingTask = ProcessLogsAsync();
     }
 
     public void QueueLog(string logMethod, string message)
     {
-        _logQueue.Enqueue((logMethod, message));
+        _channel.Writer.TryWrite(new LogEntry(logMethod, message));
     }
 
-    private async ValueTask StartLogProcessing()
+    private async Task ProcessLogsAsync()
     {
         try
         {
-            while (await _logTimer!.WaitForNextTickAsync(_linkedToken).NoSync())
+            ChannelReader<LogEntry> reader = _channel.Reader;
+
+            while (await reader.WaitToReadAsync(_linkedToken).NoSync())
             {
-                if (_jsRuntime != null && !_isProcessingLogs)
+                while (reader.TryRead(out LogEntry entry))
                 {
-                    _isProcessingLogs = true;
+                    IJSRuntime? jsRuntime = _jsRuntime;
+                    if (jsRuntime is null)
+                        continue;
 
-                    while (_logQueue.TryDequeue(out (string logMethod, string message) log))
-                    {
-                        await _jsRuntime.InvokeVoidAsync(log.logMethod, _linkedToken, log.message).NoSync();
-                    }
-
-                    _isProcessingLogs = false;
+                    await jsRuntime.InvokeVoidAsync(entry.LogMethod, _linkedToken, entry.Message).NoSync();
                 }
             }
         }
@@ -69,26 +69,37 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
         {
             // Graceful shutdown
         }
+        catch (JSDisconnectedException)
+        {
+            // Browser/Blazor circuit shut down
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_linkedSource != null)
-        {
+        _channel.Writer.TryComplete();
+
+        if (_linkedSource is not null)
             await _linkedSource.CancelAsync().NoSync();
-        }
 
-        _logTimer?.Dispose();
-
-        if (_linkedSource != null)
+        if (_processingTask is not null)
         {
-            _linkedSource.Dispose();
-            _linkedSource = null;
+            try
+            {
+                await _processingTask.NoSync();
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
-        _logTimer = null;
+        _linkedSource?.Dispose();
+        _linkedSource = null;
+        _processingTask = null;
         _jsRuntime = null;
 
         await _cancellationScope.DisposeAsync().NoSync();
     }
+
+    private readonly record struct LogEntry(string LogMethod, string Message);
 }
