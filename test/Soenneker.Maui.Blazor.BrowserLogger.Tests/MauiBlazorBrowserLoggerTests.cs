@@ -1,17 +1,16 @@
-﻿using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger.Tests;
 
-[Collection("Collection")]
-public sealed class MauiBlazorBrowserLoggerTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class MauiBlazorBrowserLoggerTests : HostedUnitTest
 {
-    public MauiBlazorBrowserLoggerTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public MauiBlazorBrowserLoggerTests(Host host) : base(host)
     {
 
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
