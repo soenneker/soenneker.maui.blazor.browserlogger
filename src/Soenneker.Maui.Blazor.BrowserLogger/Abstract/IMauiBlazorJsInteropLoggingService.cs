@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger.Abstract;
+/// <summary>
+/// Defines the maui blazor js interop logging service contract.
+/// </summary>
 public interface IMauiBlazorJsInteropLoggingService : IAsyncDisposable
 {
     /// <summary>
