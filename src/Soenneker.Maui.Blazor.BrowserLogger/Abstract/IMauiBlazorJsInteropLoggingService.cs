@@ -12,9 +12,8 @@ public interface IMauiBlazorJsInteropLoggingService : IAsyncDisposable
     /// <summary>
     /// Initializes the JavaScript runtime for interop operations.
     /// </summary>
-    /// <param name="jsRuntime">The JavaScript runtime instance.</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <param name="jsRuntime">Js Runtime for the initialize operation.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
     void Initialize(IJSRuntime jsRuntime, CancellationToken cancellationToken = default);
 
     /// <summary>

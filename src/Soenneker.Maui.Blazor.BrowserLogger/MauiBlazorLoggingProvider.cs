@@ -20,8 +20,8 @@ public sealed class MauiBlazorBrowserLoggerProvider : ILoggerProvider
     /// <summary>
     /// Creates logger.
     /// </summary>
-    /// <param name="categoryName">The category name.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="categoryName">Name of the category to target.</param>
+    /// <returns>The newly created logger.</returns>
     public ILogger CreateLogger(string categoryName)
     {
         return _loggers.GetOrAdd(categoryName, static (name, state) =>

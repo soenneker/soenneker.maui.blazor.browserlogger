@@ -13,8 +13,8 @@ public static class MauiBlazorBrowserLoggingExtension
     /// <summary>
     /// Adds maui blazor browser.
     /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <param name="builder">Builder to configure.</param>
+    /// <returns>The same builder instance, so additional classes or variants can be chained.</returns>
     public static ILoggingBuilder AddMauiBlazorBrowser(this ILoggingBuilder builder)
     {
         builder.Services.TryAddSingleton<IMauiBlazorJsInteropLoggingService, MauiBlazorJsInteropLoggingService>();
