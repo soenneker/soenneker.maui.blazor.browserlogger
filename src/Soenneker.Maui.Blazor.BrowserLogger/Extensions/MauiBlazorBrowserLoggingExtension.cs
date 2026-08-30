@@ -19,11 +19,7 @@ public static class MauiBlazorBrowserLoggingExtension
     {
         builder.Services.TryAddSingleton<IMauiBlazorJsInteropLoggingService, MauiBlazorJsInteropLoggingService>();
 
-        builder.Services.TryAddSingleton<ILoggerProvider>(sp =>
-        {
-            var jsInteropService = sp.GetRequiredService<IMauiBlazorJsInteropLoggingService>();
-            return new MauiBlazorBrowserLoggerProvider(jsInteropService);
-        });
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, MauiBlazorBrowserLoggerProvider>());
 
         return builder;
     }

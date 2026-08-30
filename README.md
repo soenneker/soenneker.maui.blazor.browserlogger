@@ -1,83 +1,63 @@
+# Soenneker.Maui.Blazor.BrowserLogger
 [![](https://img.shields.io/nuget/v/soenneker.maui.blazor.browserlogger.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.maui.blazor.browserlogger/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.maui.blazor.browserlogger/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.maui.blazor.browserlogger/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.maui.blazor.browserlogger.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.maui.blazor.browserlogger/)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.maui.blazor.browserlogger/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.maui.blazor.browserlogger/actions/workflows/codeql.yml)
 
-# ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Maui.Blazor.BrowserLogger  
-### ?? Blazor MAUI Console Logger – Log to the Browser Console Effortlessly
+Writes `Microsoft.Extensions.Logging` messages from a .NET MAUI Blazor app to the browser developer console.
 
----
+## Installation
 
-## ?? **What is this?**  
-A **custom logger for .NET MAUI Blazor** that enables logging to the **browser console** using `IJSRuntime`, ensuring logs execute properly on the **UI thread**. It includes **background logging with a periodic timer**, ensuring logs are processed even when no UI event occurs.
-
----
-
-## ?? **Why Use This?**  
-? **Standard MAUI loggers don’t work for browser console output**  
-? **Blazor’s `IJSRuntime` must execute on the UI thread**  
-? **.NET loggers process logs on a background thread, causing issues**  
-? **Works seamlessly with any `ILogger` usage across your app**  
-
----
-
-## ? **Features**  
-? **Blazor-compatible** – Ensures `IJSRuntime` runs on the UI thread.  
-? **Automatic Logging** – Uses a `PeriodicTimer` to process logs continuously.  
-? **Easy Integration** – Fully supports Blazor’s dependency injection system.  
-
----
-
-## ?? **Installation**  
-Install via NuGet:  
-```sh
-dotnet add package BlazorMauiConsoleLogger
+```bash
+dotnet add package Soenneker.Maui.Blazor.BrowserLogger
 ```
 
----
+## Registration
 
-## ?? **Setup & Usage**  
+Add the provider in `MauiProgram.cs`:
 
-### **1?? Register the Logger in `MauiProgram.cs`**
-Add the logger to the dependency injection container:  
 ```csharp
+using Soenneker.Maui.Blazor.BrowserLogger.Extensions;
+
 builder.Logging.AddMauiBlazorBrowser();
 ```
 
----
-
-### **2?? Initialize in `MainLayout.razor`**
-Inject `IJSRuntime` and `IMauiBlazorJsInteropLoggingService` in a persistent layout or page:
+The provider can receive log entries immediately, but JavaScript output begins after it has an `IJSRuntime`. Initialize it once from a component that lives for the duration of the `BlazorWebView`, such as `MainLayout.razor`:
 
 ```razor
-@inject IJSRuntime JsRuntime
-@inject IMauiBlazorJsInteropLoggingService LoggingService
-
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        await LoggingService.Initialize(JsRuntime);
-    }
-}
-```
-
----
-
-### **3?? Inject & Use the Logger in a Component**
-```razor
-@inject ILogger<MyComponent> Logger
+@inject IJSRuntime JSRuntime
+@inject IMauiBlazorJsInteropLoggingService BrowserLogging
 
 @code {
     protected override void OnInitialized()
     {
-        Logger.LogInformation("Hello from Blazor Maui Console Logger!");
+        BrowserLogging.Initialize(JSRuntime);
     }
 }
 ```
 
-?? **Log output in the browser console:**
-```plaintext
-[Information] MyComponent: Hello from Blazor Maui Console Logger!
+Add these namespaces to the component or `_Imports.razor`:
+
+```razor
+@using Microsoft.JSInterop
+@using Soenneker.Maui.Blazor.BrowserLogger.Abstract
 ```
 
----
+## Usage
+
+Use the standard `ILogger<T>` API anywhere in the app:
+
+```razor
+@inject ILogger<Orders> Logger
+
+@code {
+    private void OrderFailed(Exception exception)
+    {
+        Logger.LogError(exception, "Could not load the order");
+    }
+}
+```
+
+Trace and debug messages use `console.debug`, information uses `console.info`, warnings use `console.warn`, and errors and critical messages use `console.error`. Configure category and minimum-level filtering through the normal .NET logging configuration.
+
+Messages are delivered asynchronously and may be lost during shutdown or when the browser cannot keep up. Before initialization, the service retains only the newest buffered messages.

@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
-/// <inheritdoc cref="IMauiBlazorJsInteropLoggingService"/>
 public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLoggingService
 {
-    private readonly Channel<LogEntry> _channel = Channel.CreateUnbounded<LogEntry>(new UnboundedChannelOptions
+    private readonly Channel<LogEntry> _channel = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(1024)
     {
         SingleReader = true,
         SingleWriter = false,
-        AllowSynchronousContinuations = false
+        AllowSynchronousContinuations = false,
+        FullMode = BoundedChannelFullMode.DropOldest
     });
 
     private readonly CancellationScope _cancellationScope = new();
