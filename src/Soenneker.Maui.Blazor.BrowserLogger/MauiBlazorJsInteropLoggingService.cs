@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Maui.Blazor.BrowserLogger;
 
+/// <inheritdoc cref="IMauiBlazorJsInteropLoggingService" />
 public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLoggingService
 {
     private readonly Channel<LogEntry> _channel = Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(1024)
