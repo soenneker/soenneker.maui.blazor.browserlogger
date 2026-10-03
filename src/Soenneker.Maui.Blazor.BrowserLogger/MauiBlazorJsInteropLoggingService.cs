@@ -53,6 +53,7 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
         try
         {
             ChannelReader<LogEntry> reader = _channel.Reader;
+            var arguments = new object?[1];
 
             while (await reader.WaitToReadAsync(_linkedToken).NoSync())
             {
@@ -62,7 +63,15 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
                     if (jsRuntime is null)
                         continue;
 
-                    await jsRuntime.InvokeVoidAsync(entry.LogMethod, _linkedToken, entry.Message).NoSync();
+                    arguments[0] = entry.Message;
+                    try
+                    {
+                        await jsRuntime.InvokeVoidAsync(entry.LogMethod, _linkedToken, arguments).NoSync();
+                    }
+                    finally
+                    {
+                        arguments[0] = null;
+                    }
                 }
             }
         }
@@ -106,5 +115,4 @@ public sealed class MauiBlazorJsInteropLoggingService : IMauiBlazorJsInteropLogg
         await _cancellationScope.DisposeAsync().NoSync();
     }
 
-    private readonly record struct LogEntry(string LogMethod, string Message);
 }
