@@ -50,6 +50,6 @@
         <PackageReference Include="Soenneker.Extensions.CancellationTokens" Version="11.0.37" />
         <PackageReference Include="Soenneker.Extensions.Task" Version="11.0.141" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.133" />
-        <PackageReference Include="Soenneker.Utils.CancellationScopes" Version="11.0.76" />
+        <PackageReference Include="Soenneker.Utils.CancellationScopes" Version="11.0.77" />
     </ItemGroup>
 </Project>
