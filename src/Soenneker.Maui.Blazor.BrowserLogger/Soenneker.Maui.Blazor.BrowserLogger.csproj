@@ -48,7 +48,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="11.0.0" />
         <PackageReference Include="Microsoft.JSInterop" Version="11.0.0" />
         <PackageReference Include="Soenneker.Extensions.CancellationTokens" Version="11.0.40" />
-        <PackageReference Include="Soenneker.Extensions.Task" Version="11.0.143" />
+        <PackageReference Include="Soenneker.Extensions.Task" Version="11.0.144" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="11.0.137" />
         <PackageReference Include="Soenneker.Utils.CancellationScopes" Version="11.0.80" />
     </ItemGroup>
